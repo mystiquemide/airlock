@@ -1,0 +1,13 @@
+.git/
+.github/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.env
+config/agent_config.yaml
+ledger/node_modules/
+ledger/.next/
+docs/assets/
+*.err
+warden.log
