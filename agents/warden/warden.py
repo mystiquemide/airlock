@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import re
 import uuid
 from pathlib import Path
@@ -181,9 +182,13 @@ def load_ctx() -> dict:
 
 async def main() -> None:
     load_dotenv(ROOT / ".env")
-    from band.config import load_agent_config
 
-    agent_id, api_key = load_agent_config("warden", config_path=ROOT / "config" / "agent_config.yaml")
+    agent_id = os.getenv("WARDEN_AGENT_ID")
+    api_key = os.getenv("WARDEN_API_KEY")
+    if not agent_id or not api_key:
+        from band.config import load_agent_config
+        agent_id, api_key = load_agent_config("warden", config_path=ROOT / "config" / "agent_config.yaml")
+
     policy = PolicyEngine.from_yaml(ROOT / "policies" / "policy.yaml")
     adapter = WardenAdapter(policy=policy, ctx=load_ctx())
     agent = Agent.create(adapter=adapter, agent_id=agent_id, api_key=api_key)
