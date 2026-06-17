@@ -12,6 +12,8 @@ Airlock is a governance membrane between an untrusted A2A agent swarm and your r
 
 The core invariant: an untrusted agent can never execute a privileged action directly. It emits an intent. The Warden evaluates, gates, and acts. Every decision is logged permanently.
 
+![Airlock landing page](docs/assets/landing.png)
+
 ---
 
 ## Architecture
@@ -94,6 +96,15 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full system design, A
 - **YAML policy engine.** Fail-closed. First-match verdict. Conditions include equality, numeric thresholds, allowlist membership, and PII field detection. Unknown action types are denied by default.
 - **Human gate.** Escalated actions block until a human compliance officer responds in the Band room. No custom approval infrastructure, no polling. Band's native @mention model is the gate.
 - **Self-writing audit ledger.** Band message history is the system of record. The Next.js compliance ledger reads and projects it into a live timeline with per-request stage tracking, verdict breakdown, and a diff panel showing what raw A2A would have executed unchecked.
+
+---
+
+## Console
+
+| | |
+|---|---|
+| ![Dashboard](docs/assets/dashboard.png) | ![Ledger](docs/assets/ledger.png) |
+| ![Agents](docs/assets/agents.png) | ![Policy](docs/assets/policy.png) |
 
 ---
 
