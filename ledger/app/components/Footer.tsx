@@ -8,7 +8,7 @@ import FadeUp from "./FadeUp";
 const productLinks = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Why Airlock",  href: "#why-airlock"  },
-  { label: "Demo",         href: "#demo"          },
+  { label: "Scenario",     href: "/demo"          },
   { label: "Docs",         href: "#docs"          },
 ];
 
@@ -234,7 +234,7 @@ export default function Footer() {
               color: "rgba(255,255,255,0.2)",
             }}
           >
-            © 2026 Airlock. Built at Band Hackathon.
+            © 2026 Airlock. MIT License.
           </span>
           <span
             style={{

@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 const links = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Why Airlock",  href: "#why-airlock"  },
-  { label: "Demo",         href: "/demo"          },
+  { label: "Scenario",     href: "/demo"          },
   { label: "Docs",         href: "#docs"          },
 ];
 

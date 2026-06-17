@@ -119,7 +119,7 @@ export default function DemoPage() {
               marginBottom: "24px",
             }}
           >
-            LIVE DEMO
+            SCENARIO
           </p>
 
           <h1
@@ -824,7 +824,7 @@ status: ACTIVE`}</pre>
             letterSpacing: "0.08em",
           }}
         >
-          Built at Band Hackathon 2026
+          © 2026 Airlock
         </p>
       </section>
 

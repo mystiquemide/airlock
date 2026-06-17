@@ -2,7 +2,7 @@
 
 These are the ONLY tools that touch "real systems". They live only on the
 Warden. Untrusted agents never import this module. Every call logs and returns
-canned data, so the demo is safe to run on camera.
+canned data, so they can be exercised safely without touching real systems.
 
 Each tool takes the request's params dict (no positional args) to avoid
 argument collisions when an action's params happen to share a key name.
