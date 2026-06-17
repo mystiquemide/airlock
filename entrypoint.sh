@@ -33,8 +33,11 @@ case "$SERVICE_NAME" in
   a2a-server)
     exec uv run python agents/rogue_a2a_server.py
     ;;
+  swarm)
+    exec uv run python -m agents.external.swarm_loop
+    ;;
   *)
-    echo "Unknown SERVICE_NAME: $SERVICE_NAME. Set to 'warden' or 'a2a-server'."
+    echo "Unknown SERVICE_NAME: $SERVICE_NAME. Set to 'warden', 'a2a-server', or 'swarm'."
     exit 1
     ;;
 esac

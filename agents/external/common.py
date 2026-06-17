@@ -33,7 +33,24 @@ load_dotenv(ROOT / ".env")
 
 BASE_URL = os.environ.get("BAND_BASE_URL", "https://app.band.ai")
 CHAT_ID = os.environ["AIRLOCK_CHAT_ID"]
-AGENTS = yaml.safe_load((ROOT / "config" / "agent_config.yaml").read_text(encoding="utf-8"))
+
+def _load_agents() -> dict:
+    _env_keys = {
+        "warden":           ("WARDEN_AGENT_ID",          "WARDEN_API_KEY"),
+        "data_aggregator":  ("DATA_AGGREGATOR_AGENT_ID", "DATA_AGGREGATOR_API_KEY"),
+        "vendor_sync":      ("VENDOR_SYNC_AGENT_ID",     "VENDOR_SYNC_API_KEY"),
+        "payout_bot":       ("PAYOUT_BOT_AGENT_ID",      "PAYOUT_BOT_API_KEY"),
+        "rogue":            ("ROGUE_AGENT_ID",            "ROGUE_API_KEY"),
+    }
+    from_env = {
+        name: {"agent_id": os.getenv(id_k, ""), "api_key": os.getenv(key_k, "")}
+        for name, (id_k, key_k) in _env_keys.items()
+    }
+    if from_env["warden"]["agent_id"] and from_env["warden"]["api_key"]:
+        return from_env
+    return yaml.safe_load((ROOT / "config" / "agent_config.yaml").read_text(encoding="utf-8"))
+
+AGENTS = _load_agents()
 
 WARDEN_ID = AGENTS["warden"]["agent_id"]
 WARDEN_HANDLE = "mide27145/warden"

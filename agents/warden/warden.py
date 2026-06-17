@@ -17,6 +17,7 @@ import json
 import logging
 import os
 import re
+import time
 import uuid
 from pathlib import Path
 
@@ -31,6 +32,8 @@ from agents.warden import tools as caps
 ROOT = Path(__file__).resolve().parents[2]
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 logger = logging.getLogger("airlock.warden")
+
+AUTO_ESCALATION_TIMEOUT = int(os.getenv("AUTO_ESCALATION_TIMEOUT", "600"))  # seconds, default 10 min
 
 _APPROVE = re.compile(r"\b(approve|approved|allow|yes|ok|sign\s*off)\b", re.I)
 _DENY = re.compile(r"\b(deny|denied|reject|block|no)\b", re.I)
@@ -62,15 +65,33 @@ class WardenAdapter(SimpleAdapter):
         super().__init__(**kw)
         self.policy = policy
         self.ctx = ctx
-        self.pending: dict[str, tuple[ActionRequest, str]] = {}  # room_id -> (req, requester)
-        self._seen: set[str] = set()  # message ids already handled (dedupe)
+        self.pending: dict[str, tuple[ActionRequest, str, float]] = {}  # room_id -> (req, requester, ts)
+        self._seen: set[str] = set()
+        self._tools_cache: dict[str, object] = {}  # room_id -> tools, for background task
 
     async def on_started(self, agent_name: str, agent_description: str) -> None:
         logger.info("Warden online as '%s'. Policy loaded with %d rules (default=%s).",
                     agent_name, len(self.policy.rules), self.policy.default)
+        asyncio.create_task(self._escalation_timeout_loop())
+
+    async def _escalation_timeout_loop(self) -> None:
+        while True:
+            await asyncio.sleep(60)
+            now = time.time()
+            for room_id, (req, requester, ts) in list(self.pending.items()):
+                if now - ts > AUTO_ESCALATION_TIMEOUT:
+                    tools = self._tools_cache.get(room_id)
+                    if tools:
+                        del self.pending[room_id]
+                        logger.info("[%s] Auto-executing after %ds - no human response", req.id, AUTO_ESCALATION_TIMEOUT)
+                        try:
+                            await self._execute(req, tools, note=f"auto-cleared after {AUTO_ESCALATION_TIMEOUT}s")
+                        except Exception as exc:
+                            logger.warning("[%s] Auto-execute failed: %s", req.id, exc)
 
     async def on_message(self, msg, tools, history, participants_msg, contacts_msg,
                          *, is_session_bootstrap: bool, room_id: str) -> None:
+        self._tools_cache[room_id] = tools
         # Dedupe by message id rather than skipping the bootstrap turn, which
         # was swallowing the first real request delivered after connect.
         mid = getattr(msg, "id", None)
@@ -111,7 +132,7 @@ class WardenAdapter(SimpleAdapter):
         if verdict.decision == ALLOW:
             await self._execute(req, tools, note="cleared")
         elif verdict.decision == HUMAN:
-            self.pending[room_id] = (req, req.agent_handle)
+            self.pending[room_id] = (req, req.agent_handle, time.time())
             human = await self._human_name(tools)
             mentions = [human] if human else None
             await tools.send_message(
@@ -132,7 +153,7 @@ class WardenAdapter(SimpleAdapter):
             )
 
     async def _resolve_human(self, content: str, human: str, tools, room_id: str) -> None:
-        req, requester = self.pending.pop(room_id)
+        req, requester, _ = self.pending.pop(room_id)
         approved = bool(_APPROVE.search(content)) and not _DENY.search(content)
         if approved:
             await self._execute(req, tools, note=f"approved by {human}")
