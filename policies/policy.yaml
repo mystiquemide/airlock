@@ -1,0 +1,42 @@
+# Airlock policy. First matching rule wins. Default is fail-closed (deny).
+default: deny
+
+rules:
+  - name: public-data-open
+    action_type: read_public_data
+    verdict: allow
+
+  - name: pii-with-consent
+    action_type: read_pii
+    when: { consent_token: present }
+    verdict: allow
+
+  - name: pii-needs-human
+    action_type: read_pii
+    verdict: human
+
+  - name: pii-export-forbidden
+    action_type: export_pii
+    verdict: deny
+
+  - name: payout-large-needs-human
+    action_type: payout
+    when: { account_in_allowlist: true, amount_gt: 10000 }
+    verdict: human
+
+  - name: payout-unlisted-forbidden
+    action_type: payout
+    when: { account_in_allowlist: false }
+    verdict: deny
+
+  - name: payout-small-ok
+    action_type: payout
+    verdict: allow
+
+  - name: prod-write-needs-human
+    action_type: prod_write
+    verdict: human
+
+  - name: deploy-needs-human
+    action_type: deploy
+    verdict: human

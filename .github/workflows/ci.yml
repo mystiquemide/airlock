@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ledger-build:
+    name: Ledger (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ledger/package-lock.json
+
+      - name: Install dependencies
+        run: cd ledger && npm ci
+
+      - name: Type-check
+        run: cd ledger && npm run typecheck --if-present
+
+      - name: Build
+        run: cd ledger && npm run build
+
+  python-ci:
+    name: Python (pytest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests
+        run: uv run pytest tests/ -v

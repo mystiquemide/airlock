@@ -1,0 +1,22 @@
+# Copy to config/agent_config.yaml (gitignored) and fill from the Band UI.
+# Each agent: register in Band > Agents > New Agent (External), copy its UUID + API key.
+
+warden:
+  agent_id: "<warden-agent-uuid>"
+  api_key: "<warden-agent-api-key>"
+
+data_aggregator:
+  agent_id: "<data-aggregator-uuid>"
+  api_key: "<data-aggregator-api-key>"
+
+vendor_sync:
+  agent_id: "<vendor-sync-uuid>"
+  api_key: "<vendor-sync-api-key>"
+
+payout_bot:
+  agent_id: "<payout-bot-uuid>"
+  api_key: "<payout-bot-api-key>"
+
+rogue:
+  agent_id: "<rogue-agent-uuid>"
+  api_key: "<rogue-agent-api-key>"

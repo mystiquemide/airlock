@@ -1,0 +1,5 @@
+{
+  "cust_001": { "name": "Lena Okafor", "tier": "gold", "pii": true },
+  "cust_002": { "name": "Marcus Reid", "tier": "silver", "pii": true },
+  "cust_003": { "name": "Priya Nair", "tier": "gold", "pii": true }
+}

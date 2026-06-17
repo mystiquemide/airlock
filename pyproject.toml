@@ -1,0 +1,19 @@
+[project]
+name = "airlock"
+version = "0.1.0"
+description = "Governance membrane over untrusted A2A agents"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0",
+    "band-sdk[anthropic]>=1.0.0",
+    "a2a-sdk>=1.1.0",
+    "openai>=2.41.1",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

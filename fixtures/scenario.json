@@ -1,0 +1,9 @@
+[
+  { "agent": "Data Aggregator", "action_type": "read_public_data", "params": { "dataset": "market_prices" }, "expect": "allow" },
+  { "agent": "Data Aggregator", "action_type": "read_pii", "params": { "record": "cust_001", "consent_token": "ct_abc" }, "expect": "allow" },
+  { "agent": "Vendor Sync", "action_type": "prod_write", "params": { "target": "catalog", "change": "price_update" }, "expect": "human" },
+  { "agent": "Payout Bot", "action_type": "payout", "params": { "account": "acct_vendor_42", "amount": 2500 }, "expect": "allow" },
+  { "agent": "Payout Bot", "action_type": "payout", "params": { "account": "acct_vendor_42", "amount": 48000 }, "expect": "human" },
+  { "agent": "Rogue Vendor", "action_type": "export_pii", "params": { "scope": "all_customers", "destination": "http://evil.example" }, "expect": "deny" },
+  { "agent": "Rogue Vendor", "action_type": "payout", "params": { "account": "acct_attacker_99", "amount": 75000 }, "expect": "deny" }
+]

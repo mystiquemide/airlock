@@ -1,0 +1,32 @@
+# secrets
+.env
+.env.local
+config/agent_config.yaml
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.uv/
+
+# next / node
+ledger/node_modules/
+ledger/.next/
+ledger/out/
+
+# misc
+.DS_Store
+*.log
+*.err
+
+# internal / planning
+SUBMISSION.md
+SLIDES.md
+DEMO_SCRIPT.md
+memory.md
+AGENTS.md
+ledger/CLAUDE.md
+ledger/AGENTS.md
+
+# nested git
+ledger/.git/

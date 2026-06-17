@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Airlock — Nothing crosses ungoverned.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#0E1116;
+    --panel:#161A21;
+    --panel-raised:#1B2029;
+    --border:#5B6B7E;
+    --border-dim:#2A3140;
+    --text:#E6E9EF;
+    --muted:#8A93A2;
+    --allow:#3FB57A;
+    --human:#E0A23B;
+    --deny:#E0533D;
+    --sans:'Geist','Inter',system-ui,-apple-system,sans-serif;
+    --mono:'Geist Mono','IBM Plex Mono',ui-monospace,Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--canvas);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+
+  /* faint hairline grid texture on canvas — flat lines, no color blend */
+  .grid-texture{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      repeating-linear-gradient(0deg, var(--border-dim) 0 1px, transparent 1px 96px),
+      repeating-linear-gradient(90deg, var(--border-dim) 0 1px, transparent 1px 96px);
+    opacity:.35;
+    mask-image:radial-gradient(ellipse 70% 60% at 50% 0%, black 0%, transparent 75%);
+  }
+
+  /* ===== NAV ===== */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    border-bottom:1px solid transparent;
+    transition:border-color .3s, background-color .3s;
+  }
+  nav.scrolled{
+    background:rgba(14,17,22,.86);
+    backdrop-filter:blur(10px);
+    border-bottom-color:var(--border-dim);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:72px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-.01em;font-size:17px;}
+  .brand svg{display:block;}
+  .brand .ring{animation:iris 1.4s cubic-bezier(.2,.7,.2,1) both;}
+  nav .links{display:flex;align-items:center;gap:36px;}
+  nav .links a{font-size:14px;color:var(--muted);transition:color .15s;}
+  nav .links a:hover{color:var(--text);}
+  .pill-link{
+    display:inline-flex;align-items:center;gap:6px;
+    border:1px solid var(--border);border-radius:99px;
+    padding:9px 16px;font-size:13px;font-family:var(--mono);
+    transition:border-color .15s, background-color .15s;
+  }
+  .pill-link:hover{border-color:var(--text);background:var(--panel);}
+  @media (max-width:760px){ nav .links a:not(.pill-link){display:none;} }
+
+  /* ===== HERO ===== */
+  header.hero{
+    position:relative;z-index:1;
+    padding:200px 0 120px;
+    overflow:hidden;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid var(--border-dim);border-radius:99px;
+    padding:6px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);
+    margin-bottom:40px;
+  }
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--allow);}
+  h1{
+    font-size:64px;font-weight:600;letter-spacing:-.02em;line-height:1.04;
+    max-width:780px;
+  }
+  header.hero p.lede{
+    margin-top:24px;max-width:560px;font-size:19px;color:var(--muted);line-height:1.6;
+  }
+  .cta-row{display:flex;gap:16px;margin-top:44px;align-items:center;}
+  .btn-primary{
+    background:var(--text);color:var(--canvas);
+    padding:14px 26px;border-radius:8px;font-weight:600;font-size:15px;
+    display:inline-flex;align-items:center;gap:8px;
+    transition:transform .15s, opacity .15s;
+  }
+  .btn-primary:hover{opacity:.88;transform:translateY(-1px);}
+  .btn-ghost{
+    font-family:var(--mono);font-size:14px;color:var(--muted);
+    display:inline-flex;align-items:center;gap:6px;
+    border-bottom:1px solid transparent;transition:color .15s,border-color .15s;
+  }
+  .btn-ghost:hover{color:var(--text);border-color:var(--border);}
+
+  /* membrane composition */
+  .membrane{
+    margin-top:96px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:0;
+  }
+  .membrane-side{display:flex;flex-direction:column;gap:12px;}
+  .membrane-side.right{align-items:flex-end;}
+  .membrane-label{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted);
+    text-transform:uppercase;margin-bottom:6px;
+  }
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--panel);border:1px solid var(--border-dim);border-radius:7px;
+    padding:9px 14px;font-size:13px;color:var(--text);width:fit-content;
+  }
+  .chip svg{width:14px;height:14px;color:var(--muted);flex-shrink:0;}
+  .chip.untrusted{border-left:2px solid var(--deny);}
+  .chip.trusted{border-left:2px solid var(--allow);}
+  .axis{
+    position:relative;display:flex;flex-direction:column;align-items:center;
+    padding:0 56px;height:100%;justify-content:center;
+  }
+  .axis::before{
+    content:'';position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--border);
+  }
+  .axis .iris-wrap{
+    position:relative;z-index:1;background:var(--canvas);padding:16px 0;
+  }
+  @keyframes iris{
+    0%{transform:scale(.4) rotate(-25deg);opacity:0;}
+    100%{transform:scale(1) rotate(0deg);opacity:1;}
+  }
+  @media (max-width:860px){
+    .membrane{grid-template-columns:1fr;gap:28px;}
+    .membrane-side.right{align-items:flex-start;}
+    .axis{flex-direction:row;padding:20px 0;}
+    .axis::before{top:50%;bottom:auto;left:0;right:0;width:100%;height:1px;}
+  }
+
+  /* ===== SECTION shared ===== */
+  section{position:relative;z-index:1;padding:120px 0;}
+  .section-head{max-width:620px;margin-bottom:64px;}
+  .kicker{
+    font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:16px;display:block;
+  }
+  h2{font-size:36px;font-weight:600;letter-spacing:-.015em;line-height:1.15;}
+  .section-head p{margin-top:16px;color:var(--muted);font-size:16px;}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+  .reveal.in{opacity:1;transform:translateY(0);}
+
+  /* ===== THREAT ===== */
+  .threat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border-dim);border:1px solid var(--border-dim);border-radius:12px;overflow:hidden;}
+  .threat-card{background:var(--panel);padding:36px 32px;border-left:2px solid var(--deny);}
+  .threat-card .icon-box{
+    width:40px;height:40px;border-radius:8px;background:var(--panel-raised);
+    display:flex;align-items:center;justify-content:center;margin-bottom:24px;
+  }
+  .threat-card .icon-box svg{width:19px;height:19px;color:var(--deny);}
+  .threat-card h3{font-size:18px;font-weight:600;letter-spacing:-.01em;margin-bottom:10px;}
+  .threat-card p{font-size:14px;color:var(--muted);line-height:1.6;}
+  @media (max-width:860px){.threat-grid{grid-template-columns:1fr;}}
+
+  /* ===== HOW IT WORKS ===== */
+  .diagram-wrap{background:var(--panel);border:1px solid var(--border-dim);border-radius:14px;padding:48px;overflow-x:auto;}
+  .diagram-wrap svg{display:block;min-width:760px;width:100%;}
+  .flow-caption{display:flex;gap:32px;margin-top:28px;flex-wrap:wrap;}
+  .flow-caption div{display:flex;align-items:baseline;gap:8px;font-family:var(--mono);font-size:13px;color:var(--muted);}
+  .flow-caption b{color:var(--text);font-weight:500;}
+
+  /* ===== VERDICT TRIAD ===== */
+  .verdict-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  .verdict-panel{
+    background:var(--panel);border-radius:12px;padding:32px;
+    border-left:2px solid var(--v-color);
+  }
+  .verdict-panel.allow{--v-color:var(--allow);}
+  .verdict-panel.human{--v-color:var(--human);}
+  .verdict-panel.deny{--v-color:var(--deny);}
+  .v-pill{
+    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--v-color);border:1px solid var(--v-color);border-radius:5px;padding:4px 10px;
+    display:inline-flex;align-items:center;gap:6px;margin-bottom:22px;
+  }
+  .v-pill svg{width:12px;height:12px;}
+  .verdict-panel h4{font-size:16px;font-weight:600;margin-bottom:10px;}
+  .verdict-panel .micro{
+    font-family:var(--mono);font-size:13px;color:var(--text);background:var(--canvas);
+    border:1px solid var(--border-dim);border-radius:6px;padding:12px 14px;margin-top:18px;line-height:1.5;
+  }
+  .verdict-panel p.desc{font-size:14px;color:var(--muted);line-height:1.6;}
+  @media (max-width:860px){.verdict-grid{grid-template-columns:1fr;}}
+
+  /* ===== LEDGER PREVIEW ===== */
+  .ledger-frame{background:var(--panel);border:1px solid var(--border-dim);border-radius:14px;overflow:hidden;}
+  .ledger-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 28px;border-bottom:1px solid var(--border-dim);
+  }
+  .ledger-header .title{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;}
+  .ledger-header .room{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;}
+  thead th{
+    text-align:left;font-weight:500;color:var(--muted);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    padding:14px 28px;border-bottom:1px solid var(--border-dim);
+  }
+  tbody td{padding:14px 28px;border-bottom:1px solid var(--border-dim);color:var(--text);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr.blocked{background:rgba(224,83,61,.08);}
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-radius:4px;padding:3px 8px;}
+  .tag.allow{color:var(--allow);background:rgba(63,181,122,.12);}
+  .tag.human{color:var(--human);background:rgba(224,162,59,.12);}
+  .tag.deny{color:var(--deny);background:rgba(224,83,61,.12);}
+  .ledger-footer{
+    padding:16px 28px;font-family:var(--mono);font-size:12px;color:var(--muted);
+    border-top:1px solid var(--border-dim);
+  }
+  @media (max-width:760px){
+    thead{display:none;}
+    tbody td{display:block;padding:4px 28px;border-bottom:none;}
+    tbody tr{display:block;padding:14px 0;border-bottom:1px solid var(--border-dim);}
+  }
+
+  /* ===== FOOTER ===== */
+  footer{position:relative;z-index:1;border-top:1px solid var(--border-dim);padding:72px 0 40px;}
+  .footer-top{display:flex;justify-content:space-between;gap:48px;flex-wrap:wrap;margin-bottom:56px;}
+  .footer-brand{max-width:320px;}
+  .footer-brand .brand{margin-bottom:14px;}
+  .footer-brand p{color:var(--muted);font-size:14px;line-height:1.6;}
+  .footer-cols{display:flex;gap:56px;flex-wrap:wrap;}
+  .footer-col h5{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;
+  }
+  .footer-col a{display:block;font-size:14px;color:var(--text);margin-bottom:11px;}
+  .footer-col a:hover{color:var(--muted);}
+  .footer-bottom{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+    padding-top:28px;border-top:1px solid var(--border-dim);
+    font-family:var(--mono);font-size:12px;color:var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-texture"></div>
+
+<nav id="nav">
+  <div class="wrap">
+    <a href="#" class="brand">
+      <svg class="ring" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/></svg>
+      AIRLOCK
+    </a>
+    <div class="links">
+      <a href="#threat">The problem</a>
+      <a href="#how">How it works</a>
+      <a href="#verdicts">Verdicts</a>
+      <a href="#ledger">Ledger</a>
+      <a href="ledger.html" class="pill-link">See the airlock</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="badge"><span class="dot"></span>Built for the Band of Agents Hackathon — Track 3</span>
+    <h1>Nothing crosses<br>ungoverned.</h1>
+    <p class="lede">Airlock is a governance membrane between an untrusted A2A agent swarm and your real systems. External agents can only request. A single governed Warden decides, escalates, and acts — and every decision writes itself to an immutable ledger.</p>
+    <div class="cta-row">
+      <a href="ledger.html" class="btn-primary">
+        See the airlock
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="console.html" class="btn-ghost">View the console →</a>
+    </div>
+
+    <div class="membrane reveal" id="membrane">
+      <div class="membrane-side">
+        <span class="membrane-label">Outside — untrusted</span>
+        <div class="chip untrusted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Data Aggregator</div>
+        <div class="chip untrusted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>Vendor Sync</div>
+        <div class="chip untrusted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg>Payout Bot</div>
+        <div class="chip untrusted" style="border-left-color:var(--deny);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Rogue agent</div>
+      </div>
+
+      <div class="axis">
+        <div class="iris-wrap">
+          <svg class="ring" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.3"><circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/></svg>
+        </div>
+      </div>
+
+      <div class="membrane-side right">
+        <span class="membrane-label">Inside — governed</span>
+        <div class="chip trusted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.7-4 3-9 3s-9-1.3-9-3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5"/></svg>Database</div>
+        <div class="chip trusted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Payments</div>
+        <div class="chip trusted"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/></svg>Deploy</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="threat">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">The problem</span>
+      <h2>Raw A2A has no membrane.</h2>
+      <p>Agents discover each other and fire tasks over HTTP with zero oversight. Nothing stands between intent and execution.</p>
+    </div>
+    <div class="threat-grid reveal">
+      <div class="threat-card">
+        <div class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></div>
+        <h3>An agent can wire money</h3>
+        <p>External agents holding payment tools can move funds with no permission scoping and no one watching it happen.</p>
+      </div>
+      <div class="threat-card">
+        <div class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="M12 17v.01M12 13a1.5 1.5 0 10-1.5-1.5"/></svg></div>
+        <h3>An injected agent can leak data</h3>
+        <p>A prompt-injected agent can exfiltrate customer PII before a human ever sees the request that caused it.</p>
+      </div>
+      <div class="threat-card">
+        <div class="icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/></svg></div>
+        <h3>No human in the loop</h3>
+        <p>Agent-to-agent protocols execute tasks the moment they're requested. There's no gate, and no record once it's done.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">How it works</span>
+      <h2>One enforcement point. Every request passes through it.</h2>
+      <p>External agents hold no privileged tools. They can only request — the Warden decides, and Band's history writes the record.</p>
+    </div>
+    <div class="diagram-wrap reveal">
+      <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+        <!-- lanes -->
+        <rect x="0" y="20" width="220" height="120" rx="10" fill="none" stroke="#5B6B7E" stroke-width="1"/>
+        <text x="110" y="14" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="11" letter-spacing="1">OUTSIDE</text>
+        <text x="110" y="60" text-anchor="middle" fill="#E6E9EF" font-family="Geist, sans-serif" font-size="13" font-weight="500">Untrusted</text>
+        <text x="110" y="80" text-anchor="middle" fill="#E6E9EF" font-family="Geist, sans-serif" font-size="13" font-weight="500">A2A agents</text>
+        <text x="110" y="108" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="11">no privileged tools</text>
+
+        <rect x="270" y="10" width="220" height="140" rx="10" fill="#1B2029" stroke="#E0A23B" stroke-width="1.4"/>
+        <text x="380" y="4" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="11" letter-spacing="1">AIRLOCK</text>
+        <text x="380" y="50" text-anchor="middle" fill="#E6E9EF" font-family="Geist, sans-serif" font-size="13" font-weight="600">Warden</text>
+        <text x="380" y="70" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="11">policy engine</text>
+        <text x="380" y="88" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="11">human gate</text>
+        <line x1="270" y1="118" x2="490" y2="118" stroke="#2A3140" stroke-width="1"/>
+        <text x="380" y="138" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="10">→ Band history</text>
+
+        <rect x="540" y="20" width="220" height="120" rx="10" fill="none" stroke="#5B6B7E" stroke-width="1"/>
+        <text x="650" y="14" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="11" letter-spacing="1">INSIDE</text>
+        <text x="650" y="60" text-anchor="middle" fill="#E6E9EF" font-family="Geist, sans-serif" font-size="13" font-weight="500">Real systems</text>
+        <text x="650" y="80" text-anchor="middle" fill="#E6E9EF" font-family="Geist, sans-serif" font-size="13" font-weight="500">(mocked)</text>
+        <text x="650" y="108" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="11">db · payment · deploy</text>
+
+        <!-- arrows -->
+        <line x1="220" y1="80" x2="266" y2="80" stroke="#5B6B7E" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <text x="243" y="68" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="10">intent</text>
+
+        <line x1="494" y1="80" x2="536" y2="80" stroke="#3FB57A" stroke-width="1.4" marker-end="url(#arrowg)"/>
+        <text x="515" y="68" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="10">capability</text>
+
+        <!-- ledger branch -->
+        <line x1="380" y1="150" x2="380" y2="195" stroke="#2A3140" stroke-width="1" marker-end="url(#arrow)"/>
+        <text x="380" y="212" text-anchor="middle" fill="#8A93A2" font-family="Geist Mono, monospace" font-size="11">Compliance Ledger (Next.js)</text>
+
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#5B6B7E"/>
+          </marker>
+          <marker id="arrowg" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#3FB57A"/>
+          </marker>
+        </defs>
+      </svg>
+      <div class="flow-caption">
+        <div><b>Capability separation</b> — privileged tools live only on the Warden</div>
+        <div><b>Policy engine</b> — static YAML, fail-closed</div>
+        <div><b>Audit</b> — Band history is the system of record</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="verdicts">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">The policy engine</span>
+      <h2>Every request resolves to exactly one verdict.</h2>
+      <p>Three outcomes. No ambiguity. A verdict color only ever means its verdict.</p>
+    </div>
+    <div class="verdict-grid reveal">
+      <div class="verdict-panel allow">
+        <span class="v-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg>Auto-allow</span>
+        <h4>Low-risk, resolves without a human.</h4>
+        <p class="desc">Matches a safe rule — read-only lookups, requests under threshold. Executes immediately.</p>
+        <div class="micro">Cleared. Logged.</div>
+      </div>
+      <div class="verdict-panel human">
+        <span class="v-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>Require-human</span>
+        <h4>Risky enough to need a person.</h4>
+        <p class="desc">Payouts over threshold, prod writes — @mentions the Compliance Officer in Band and blocks until they reply.</p>
+        <div class="micro">Action requires human clearance: payout($4,200). Approve or deny.</div>
+      </div>
+      <div class="verdict-panel deny">
+        <span class="v-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Hard-deny</span>
+        <h4>Forbidden. Never reaches a human.</h4>
+        <p class="desc">Matches a hard-deny rule — payout to an unlisted account, anomalous request pattern. Rejected outright.</p>
+        <div class="micro">Blocked by policy: payout.account_not_allowlisted. Not executed.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ledger">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="kicker">The compliance artifact</span>
+      <h2>The ledger writes itself.</h2>
+      <p>Every request, verdict, and human decision — pulled straight from Band's immutable history, not a separate store.</p>
+    </div>
+    <div class="ledger-frame reveal">
+      <div class="ledger-header">
+        <div class="title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/></svg>
+          Airlock — Compliance Ledger
+        </div>
+        <span class="room">room 2b8714b2</span>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Time</th><th>Agent</th><th>Action</th><th>Verdict</th><th>Human</th><th>Executed</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>14:02:11</td><td>data-aggregator</td><td>read_public_data</td>
+            <td><span class="tag allow">allow</span></td><td>—</td><td>yes</td>
+          </tr>
+          <tr>
+            <td>14:03:47</td><td>payout-bot</td><td>payout($4,200)</td>
+            <td><span class="tag human">human</span></td><td>approved</td><td>yes</td>
+          </tr>
+          <tr class="blocked">
+            <td>14:05:02</td><td>rogue-agent</td><td>payout($9,000, unlisted)</td>
+            <td><span class="tag deny">deny</span></td><td>—</td><td>no — BLOCKED</td>
+          </tr>
+          <tr>
+            <td>14:06:18</td><td>vendor-sync</td><td>export_pii(customers)</td>
+            <td><span class="tag human">human</span></td><td>denied</td><td>no</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="ledger-footer">This trail was written by Band. Nothing was added by hand.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/></svg>
+          AIRLOCK
+        </a>
+        <p>Nothing crosses ungoverned. A governance membrane between an untrusted A2A agent swarm and your real systems.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h5>Product</h5>
+          <a href="#how">How it works</a>
+          <a href="#verdicts">Verdicts</a>
+          <a href="ledger.html">Compliance ledger</a>
+          <a href="console.html">Console</a>
+        </div>
+        <div class="footer-col">
+          <h5>Docs</h5>
+          <a href="../docs/PRD.md">PRD</a>
+          <a href="../docs/ARCHITECTURE.md">Architecture</a>
+          <a href="../docs/DESIGN.md">Design system</a>
+          <a href="../README.md">README</a>
+        </div>
+        <div class="footer-col">
+          <h5>Links</h5>
+          <a href="https://lablab.ai/ai-hackathons/band-of-agents-hackathon" target="_blank" rel="noopener">lablab hackathon ↗</a>
+          <a href="https://www.band.ai/" target="_blank" rel="noopener">Band.ai ↗</a>
+          <a href="https://a2a-protocol.org" target="_blank" rel="noopener">A2A protocol ↗</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Built for the lablab.ai Band of Agents Hackathon — Track 3</span>
+      <span>Status: MVP</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // nav background on scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 8);
+  });
+
+  // staggered reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
