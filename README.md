@@ -7,10 +7,16 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
 [![Band SDK](https://img.shields.io/badge/Band-SDK-8b5cf6.svg)](https://www.band.ai/)
 [![CI](https://github.com/MystiqueMide/airlock/actions/workflows/ci.yml/badge.svg)](https://github.com/MystiqueMide/airlock/actions/workflows/ci.yml)
+[![Compliance Ledger](https://img.shields.io/badge/Compliance_Ledger-live-22c55e.svg)](https://airlock001.vercel.app)
+[![Warden](https://img.shields.io/badge/Warden-live_on_Railway-7c3aed.svg)](https://railway.app)
 
 Airlock is a governance membrane between an untrusted A2A agent swarm and your real systems. External agents hold no privileged tools. They can only request actions through a Band-native **Warden** that runs a YAML policy engine, escalates risky actions to a human compliance officer, and uses Band's immutable message history as a self-writing audit ledger.
 
 The core invariant: an untrusted agent can never execute a privileged action directly. It emits an intent. The Warden evaluates, gates, and acts. Every decision is logged permanently.
+
+![Airlock landing page](docs/assets/landing.png)
+
+**Live:** [Compliance Ledger](https://airlock001.vercel.app) - [A2A Server](https://a2a-server-production-154f.up.railway.app/.well-known/agent.json)
 
 ---
 
@@ -94,6 +100,15 @@ See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full system design, A
 - **YAML policy engine.** Fail-closed. First-match verdict. Conditions include equality, numeric thresholds, allowlist membership, and PII field detection. Unknown action types are denied by default.
 - **Human gate.** Escalated actions block until a human compliance officer responds in the Band room. No custom approval infrastructure, no polling. Band's native @mention model is the gate.
 - **Self-writing audit ledger.** Band message history is the system of record. The Next.js compliance ledger reads and projects it into a live timeline with per-request stage tracking, verdict breakdown, and a diff panel showing what raw A2A would have executed unchecked.
+
+---
+
+## Console
+
+| | |
+|---|---|
+| ![Dashboard](docs/assets/dashboard.png) | ![Ledger](docs/assets/ledger.png) |
+| ![Agents](docs/assets/agents.png) | ![Policy](docs/assets/policy.png) |
 
 ---
 

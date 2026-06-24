@@ -8,7 +8,7 @@ import FadeUp from "./FadeUp";
 const productLinks = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Why Airlock",  href: "#why-airlock"  },
-  { label: "Demo",         href: "#demo"          },
+  { label: "Scenario",     href: "/demo"          },
   { label: "Docs",         href: "#docs"          },
 ];
 
@@ -151,6 +151,7 @@ export default function Footer() {
                 href="https://github.com/mystiquemide/airlock"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="View Airlock on GitHub"
                 style={{
                   color: ghHovered ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.4)",
                   transition: "color 0.18s ease",
@@ -195,7 +196,7 @@ export default function Footer() {
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
             {partners.map((p) => (
-              <a key={p.name} href={p.href} target="_blank" rel="noopener noreferrer" style={{ display: "flex" }}>
+              <a key={p.name} href={p.href} target="_blank" rel="noopener noreferrer" aria-label={p.name} style={{ display: "flex" }}>
                 <Image
                   src={p.src}
                   alt={p.name}
@@ -234,7 +235,7 @@ export default function Footer() {
               color: "rgba(255,255,255,0.2)",
             }}
           >
-            © 2026 Airlock. Built at Band Hackathon.
+            © 2026 Airlock. MIT License.
           </span>
           <span
             style={{

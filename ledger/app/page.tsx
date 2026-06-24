@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <>
       <Nav />
-      <main style={{ background: "#0A0A0A" }}>
+      <main id="main-content" style={{ background: "#0A0A0A" }}>
         <Hero />
         <PolicyBlock />
         <HowItWorks />

@@ -170,7 +170,7 @@ export default function Hero() {
           }}
         >
           <Link
-            href="/login"
+            href="/demo"
             style={{
               padding: "10px 22px",
               background: "#10B981",
@@ -189,7 +189,7 @@ export default function Hero() {
             See It Block a Rogue Agent
           </Link>
           <Link
-            href="/login"
+            href="/observe"
             style={{
               padding: "9px 22px",
               border: "1px solid rgba(255,255,255,0.3)",
