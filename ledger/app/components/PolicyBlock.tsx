@@ -249,6 +249,8 @@ export default function PolicyBlock() {
                   <button
                     key={t}
                     onClick={() => setTab(t)}
+                    aria-label={t === "yaml" ? "View policy.yaml" : "View terminal output"}
+                    aria-pressed={tab === t}
                     style={{
                       background: "none",
                       border: "none",

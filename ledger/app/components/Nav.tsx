@@ -135,6 +135,7 @@ export default function Nav() {
             }}
             className="hamburger"
             aria-label="Toggle menu"
+            aria-expanded={open}
           >
             {open ? (
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">

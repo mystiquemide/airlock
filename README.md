@@ -7,12 +7,16 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
 [![Band SDK](https://img.shields.io/badge/Band-SDK-8b5cf6.svg)](https://www.band.ai/)
 [![CI](https://github.com/MystiqueMide/airlock/actions/workflows/ci.yml/badge.svg)](https://github.com/MystiqueMide/airlock/actions/workflows/ci.yml)
+[![Compliance Ledger](https://img.shields.io/badge/Compliance_Ledger-live-22c55e.svg)](https://airlock001.vercel.app)
+[![Warden](https://img.shields.io/badge/Warden-live_on_Railway-7c3aed.svg)](https://railway.app)
 
 Airlock is a governance membrane between an untrusted A2A agent swarm and your real systems. External agents hold no privileged tools. They can only request actions through a Band-native **Warden** that runs a YAML policy engine, escalates risky actions to a human compliance officer, and uses Band's immutable message history as a self-writing audit ledger.
 
 The core invariant: an untrusted agent can never execute a privileged action directly. It emits an intent. The Warden evaluates, gates, and acts. Every decision is logged permanently.
 
 ![Airlock landing page](docs/assets/landing.png)
+
+**Live:** [Compliance Ledger](https://airlock001.vercel.app) - [A2A Server](https://a2a-server-production-154f.up.railway.app/.well-known/agent.json)
 
 ---
 
