@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import yaml from "js-yaml";
+import { load } from "js-yaml";
 
 const POLICY_PATH = path.join(process.cwd(), "..", "policies", "policy.yaml");
 
 export async function GET() {
   try {
     const fileContents = fs.readFileSync(POLICY_PATH, "utf8");
-    const policy = yaml.load(fileContents) as Record<string, unknown>;
+    const policy = load(fileContents) as Record<string, unknown>;
 
     const rules = (policy.rules as unknown[]) ?? [];
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   try {
     const { yaml: yamlContent } = await request.json();
     // Validate it's parseable YAML before writing
-    yaml.load(yamlContent);
+    load(yamlContent);
     fs.writeFileSync(POLICY_PATH, yamlContent, "utf8");
     return NextResponse.json({ success: true });
   } catch (error) {
