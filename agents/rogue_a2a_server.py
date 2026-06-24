@@ -53,11 +53,14 @@ AGENT_URL = os.getenv("ROGUE_AGENT_URL", f"http://localhost:{PORT}")
 BAND_BASE_URL = os.getenv("BAND_BASE_URL", "https://app.band.ai")
 CHAT_ID = os.environ["AIRLOCK_CHAT_ID"]
 
-AGENTS_CFG = yaml.safe_load(
-    (ROOT / "config" / "agent_config.yaml").read_text(encoding="utf-8")
-)
-ROGUE_API_KEY = AGENTS_CFG["rogue"]["api_key"]
-WARDEN_ID = AGENTS_CFG["warden"]["agent_id"]
+ROGUE_API_KEY = os.getenv("ROGUE_API_KEY")
+WARDEN_ID = os.getenv("WARDEN_AGENT_ID")
+if not ROGUE_API_KEY or not WARDEN_ID:
+    AGENTS_CFG = yaml.safe_load(
+        (ROOT / "config" / "agent_config.yaml").read_text(encoding="utf-8")
+    )
+    ROGUE_API_KEY = ROGUE_API_KEY or AGENTS_CFG["rogue"]["api_key"]
+    WARDEN_ID = WARDEN_ID or AGENTS_CFG["warden"]["agent_id"]
 WARDEN_HANDLE = "mide27145/warden"
 
 # ---------------------------------------------------------------------------

@@ -14,21 +14,21 @@
     "gsap": "^3.15.0",
     "js-cookie": "^3.0.8",
     "js-yaml": "^4.2.0",
-    "locomotive-scroll": "^4.1.4",
-    "lucide-react": "^1.18.0",
+    "locomotive-scroll": "^5.0.1",
+    "lucide-react": "^1.20.0",
     "next": "16.2.9",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/js-cookie": "^3.0.6",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20",
+    "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^6"
   }
 }

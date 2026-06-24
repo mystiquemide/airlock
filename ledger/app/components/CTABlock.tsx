@@ -81,7 +81,7 @@ export default function CTABlock() {
           }}
         >
           <Link
-            href="/login"
+            href="/observe"
             style={{
               display: "inline-flex",
               alignItems: "center",
