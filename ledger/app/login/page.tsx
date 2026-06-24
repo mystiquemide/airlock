@@ -23,7 +23,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
 
   function handleEnter() {
-    Cookies.set("airlock_session", "demo_user", { expires: 1 });
+    Cookies.set("airlock_session", "console_user", { expires: 1 });
     Cookies.set("airlock_user", email, { expires: 1 });
     router.push(searchParams.get("from") || "/dashboard");
   }
@@ -176,7 +176,7 @@ function LoginForm() {
           Enter the Airlock →
         </button>
         <p className="text-xs font-mono text-white/20 text-center mt-4">
-          Demo mode. Any credentials accepted.
+          Credentials are not validated in this build.
         </p>
 
         {/* Footer */}
