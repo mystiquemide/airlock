@@ -73,7 +73,7 @@ def evaluate(request: ActionRequest, ctx: PolicyContext) -> Verdict: ...
 ```
 - Loads `policies/policy.yaml` once at startup.
 - First matching rule wins; default verdict is `deny` (fail-closed).
-- Conditions supported (MVP): equality, numeric threshold (`amount_gt`), membership (`account_in_allowlist`, `field_is_pii`).
+- Conditions supported: equality, numeric threshold (`amount_gt`), membership (`account_in_allowlist`, `field_is_pii`).
 - Fail-closed is deliberate: unknown action types are denied, not allowed.
 
 ### policy.yaml shape (example)
@@ -128,15 +128,15 @@ The human gate uses Band's native model: the human is a room participant; the Wa
 
 ## 8. ADRs
 
-- **ADR-1 — Capability separation.** Untrusted agents hold zero tools; only the Warden does. Rationale: a compromised agent can request but never act. This is the security thesis and the demo's spine.
+- **ADR-1 — Capability separation.** Untrusted agents hold zero tools; only the Warden does. Rationale: a compromised agent can request but never act. This is the security thesis and the system's core invariant.
 - **ADR-2 — Band history is the only audit store.** No separate DB. Rationale: the ledger writing itself is the wow; a second store would undercut "the trail is a byproduct."
 - **ADR-3 — Warden-as-A2A-client over native adapter (initially).** Rationale: Band's native A2A adapter is unverified and the a2a ecosystem is young. Owning the client keeps the boundary controllable and de-risks the build. Swap to native adapter (T4.4) only if it is cleaner; log the outcome here.
-- **ADR-4 — Policy as static YAML, fail-closed.** Rationale: a full DSL/UI is out of scope; YAML is auditable and demoable, and fail-closed default is the safe stance for a governance product.
-- **ADR-5 — Governance core first, A2A second.** Rationale: B1-B5 give a complete demo with plain Band agents. A2A is the differentiator layered on top, so the bridge can never sink the submission.
+- **ADR-4 — Policy as static YAML, fail-closed.** Rationale: a full DSL/UI is out of scope; YAML is auditable and inspectable, and fail-closed default is the safe stance for a governance product.
+- **ADR-5 — Governance core first, A2A second.** Rationale: B1-B5 give a complete governed-mesh scenario with plain Band agents. A2A is the differentiator layered on top, so the bridge can never block the release.
 
 ## 9. Security notes
 
 - Fail-closed default verdict (deny).
 - Secrets in `.env` and `config/agent_config.yaml`, both gitignored.
-- Mocked tools never touch real systems; safe to run on camera.
+- Stub tools never touch real systems; safe to exercise in any environment.
 - Rogue agent is the threat model made concrete: prompt-injection / compromise is contained because capability lives behind the policy + human gate, not in the agent.
