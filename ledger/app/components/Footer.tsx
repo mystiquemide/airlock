@@ -151,6 +151,7 @@ export default function Footer() {
                 href="https://github.com/mystiquemide/airlock"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="View Airlock on GitHub"
                 style={{
                   color: ghHovered ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.4)",
                   transition: "color 0.18s ease",
@@ -195,7 +196,7 @@ export default function Footer() {
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
             {partners.map((p) => (
-              <a key={p.name} href={p.href} target="_blank" rel="noopener noreferrer" style={{ display: "flex" }}>
+              <a key={p.name} href={p.href} target="_blank" rel="noopener noreferrer" aria-label={p.name} style={{ display: "flex" }}>
                 <Image
                   src={p.src}
                   alt={p.name}
